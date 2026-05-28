@@ -146,10 +146,6 @@ export function AIAssistant() {
         })
       });
 
-      if (response.status === 404) {
-        throw new Error('لم يتم العثور على مسار الخدمة (API Route Not Found). إذا كنت تستخدم Vercel، يرجى التأكد من إعداد المسارات بشكل صحيح.');
-      }
-
       let data: any = {};
       const contentType = response.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {

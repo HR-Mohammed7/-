@@ -73,13 +73,14 @@ ${contractContext}
     { role: 'user', parts: currentParts }
   ];
 
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.5-flash',
-    contents,
-    config: {
-      systemInstruction,
-    }
+  const model = ai.getGenerativeModel({ 
+    model: 'gemini-1.5-flash',
+    systemInstruction,
   });
 
-  return response.text;
+  const response = await model.generateContent({
+    contents,
+  });
+
+  return response.response.text();
 }

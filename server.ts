@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import 'dotenv/config';
 
 async function startServer() {
   const app = express();
@@ -22,7 +23,7 @@ async function startServer() {
       const activeMimeType = attachmentType || (image ? image.mimeType : null);
 
       if (!apiKey) {
-        return res.status(500).json({ error: 'GEMINI_API_KEY is not set in environment variables.' });
+        return res.status(500).json({ error: 'لم يتم العثور على مفتاح API. يرجى إضافته في إعدادات البيئة (GEMINI_API_KEY) أو عبر واجهة التطبيق.' });
       }
 
       const ai = new GoogleGenAI({ 
@@ -34,7 +35,12 @@ async function startServer() {
         }
       });
 
-      const contractContext = fs.readFileSync(path.join(process.cwd(), 'contract-context.md'), 'utf-8');
+      let contractContext = '';
+      try {
+        contractContext = fs.readFileSync(path.join(process.cwd(), 'contract-context.md'), 'utf-8');
+      } catch (err) {
+        console.warn('Contract context file not found, using empty context.');
+      }
 
       const systemInstruction = `أنت مساعد ذكي ونظام خبير بعقد "التحول الذكي بالشبكة الكهربائية" في محافظة واسط لتوزيع الكهرباء.
 لديك دراية كاملة وشاملة بجميع بنود العقد وتفاصيله المرفقة أدناه، بالإضافة إلى قدرتك على تحليل المستندات المرفقة (مثل PDF أو الصور) ومطابقتها مع روح العقد.

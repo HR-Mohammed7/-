@@ -4,47 +4,45 @@ import path from 'path';
 import {defineConfig} from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 export default defineConfig(() => {
   return {
     build: {
       minify: false,
     },
-    plugins: [
-      react(), 
-      tailwindcss(),
-      VitePWA({
-        registerType: 'autoUpdate',
-        manifest: {
-          name: 'نظام إدارة العقد الذكي',
-          short_name: 'العقد الذكي',
-          description: 'نظام ذكي لإدارة العقد والتحول الرقمي لشبكة كهرباء واسط',
-          theme_color: '#000000',
-          background_color: '#ffffff',
-          display: 'standalone',
-          orientation: 'portrait',
-          dir: 'rtl',
-          lang: 'ar',
-          icons: [
-            {
-              src: 'pwa-512x512.png',
-              sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
-        }
-      })
-    ],
+    plugins: [react(), tailwindcss(), VitePWA({
+      registerType: 'autoUpdate',
+      manifest: {
+        name: 'نظام إدارة العقد الذكي',
+        short_name: 'العقد الذكي',
+        description: 'نظام ذكي لإدارة العقد والتحول الرقمي لشبكة كهرباء واسط',
+        theme_color: '#000000',
+        background_color: '#ffffff',
+        display: 'standalone',
+        orientation: 'portrait',
+        dir: 'rtl',
+        lang: 'ar',
+        icons: [
+          {
+            src: 'pwa-512x512.png',
+            sizes: '192x192',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png'
+          },
+          {
+            src: 'pwa-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'any maskable'
+          }
+        ]
+      }
+    }), cloudflare()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

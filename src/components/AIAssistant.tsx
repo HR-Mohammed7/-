@@ -148,15 +148,19 @@ export function AIAssistant() {
 
       let data: any = {};
       const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
+      
+      if (!contentType || !contentType.includes('application/json')) {
         const textResponse = await response.text();
+        if (response.status === 404) {
+          throw new Error('لم يتم العثور على خدمة الذكاء الاصطناعي (404). إذا كنت تستخدم Vercel أو خدمة مشابهة، يرجى التأكد من إعداد المسارات (rewrites) بشكل صحيح.');
+        }
         if (response.status === 413) {
           throw new Error('حجم الصورة المرفقة كبير جداً. يرجى محاولة استخدام صورة بحجم أصغر.');
         }
         throw new Error(textResponse.slice(0, 150) || `خطأ في الاتصال بالخادم: ${response.status}`);
       }
+      
+      data = await response.json();
       
       if (!response.ok) {
         if (data.error && data.error.includes('429')) {

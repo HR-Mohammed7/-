@@ -1,0 +1,6 @@
+{
+  "name": "Smart-Contract-Management-System",
+  "description": "منصة مخصصة لإدارة وتتبع عقد التحول الذكي للشبكة الكهربائية، مع مساعد ذكي مبني لتوضيح البنود.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

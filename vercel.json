@@ -1,7 +1,15 @@
 {
-  "functions": {
-    "server.cjs": {
-      "maxDuration": 60
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  }
+  ]
 }

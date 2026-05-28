@@ -2,16 +2,21 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
-import { createServer as createViteServer } from 'vite';
 
-async function startServer() {
-  const app = express();
+const app = express();
+
+export async function createServer() {
   const PORT = 3000;
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-const contractContext = fs.readFileSync(path.join(process.cwd(), 'contract-context.md'), 'utf-8');
+  let contractContext = '';
+  try {
+    contractContext = fs.readFileSync(path.join(process.cwd(), 'contract-context.md'), 'utf-8');
+  } catch (err) {
+    console.warn('contract-context.md not found, using empty context');
+  }
 
   // API Routes
   app.post('/api/chat', async (req, res) => {
@@ -114,6 +119,7 @@ ${contractContext}
   });
 
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -130,6 +136,12 @@ ${contractContext}
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+
+  return app;
 }
 
-startServer();
+if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+  createServer();
+}
+
+export default app;

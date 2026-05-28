@@ -146,35 +146,58 @@ export function AIAssistant() {
         })
       });
 
-      let data: any = {};
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const textResponse = await response.text();
-        if (response.status === 413) {
-          throw new Error('حجم الصورة المرفقة كبير جداً. يرجى محاولة استخدام صورة بحجم أصغر.');
-        }
-        throw new Error(textResponse.slice(0, 150) || `خطأ في الاتصال بالخادم: ${response.status}`);
-      }
-      
       if (!response.ok) {
-        if (data.error && data.error.includes('429')) {
+        const contentType = response.headers.get('content-type');
+        let errorData: any = {};
+        if (contentType && contentType.includes('application/json')) {
+          errorData = await response.json();
+        } else {
+          const text = await response.text();
+          throw new Error(text || `خطأ في الاتصال بالخادم: ${response.status}`);
+        }
+        
+        if (errorData.error && errorData.error.includes('429')) {
            throw new Error('تم تجاوز الحد المسموح للاستخدام المجاني (Rate Limit). يرجى المحاولة بعد قليل، أو إدخال مفتاح API الخاص بك من الإعدادات لرفع القيود.');
         }
-        if (data.error && (data.error.includes('503') || data.error.includes('demand'))) {
-           throw new Error('النظام يواجه ضغطاً عالياً حالياً (High Demand). يرجى المحاولة مرة أخرى خلال ثوانٍ قليلة.');
-        }
-        throw new Error(data.error || 'Network response was not ok');
+        throw new Error(errorData.error || 'Network response was not ok');
       }
 
+      // Handle streaming response
+      const assistantMessageId = (Date.now() + 1).toString();
       const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: assistantMessageId,
         role: 'assistant',
-        content: data.text || data.error || 'عذراً لا يمكنني الإجابة الآن.'
+        content: ''
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      setIsLoading(false); // Stop loading animation since we are starting the stream
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('لا يمكن قراءة البيانات من الخادم.');
+
+      const decoder = new TextDecoder();
+      let accumulatedText = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Handle potential error messages in the stream
+        if (chunk.includes('[ERROR]:')) {
+          const errorPart = chunk.split('[ERROR]:')[1];
+          throw new Error(errorPart.trim());
+        }
+
+        accumulatedText += chunk;
+        
+        setMessages(prev => prev.map(m => 
+          m.id === assistantMessageId ? { ...m, content: accumulatedText } : m
+        ));
+      }
+
     } catch (error: any) {
        setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
